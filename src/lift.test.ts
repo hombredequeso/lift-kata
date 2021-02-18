@@ -118,6 +118,7 @@ test('LiftArrivedAtEvent returns new controller state, removing all floor events
       timeEpoch: 999
     }]
   };
+
   const event: LiftArrivalEvent = {
     floor: 1,
   };
@@ -141,17 +142,16 @@ const processLiftArrivalEventForController = (
     return {
       liftRequests : controller.liftRequests.filter(x => x.onFloor !== event.floor)
     };
-  }
-
+  };
 
 const processLiftRequestEvent = (
   controller: LiftController, 
   event: LiftRequestButtonPressedEvent)
   : LiftController => {
-        return {
-          liftRequests: [...controller.liftRequests, event]
-        };
-  }
+    return {
+      liftRequests: [...controller.liftRequests, event]
+    };
+  };
 
 test('processLiftRequestEvent returns new controller state', () => {
   const initialState: LiftController = {
@@ -162,7 +162,6 @@ test('processLiftRequestEvent returns new controller state', () => {
     direction: Direction.Up,
     timeEpoch: 999
   };
-
   const newState: LiftController = 
     processLiftRequestEvent(initialState, buttonPress);
 
@@ -175,7 +174,7 @@ test('processLiftRequestEvent returns new controller state', () => {
 
 interface SystemState {
   lift: Lift,
-  controller: LiftController
+    controller: LiftController
 };
 
 
@@ -197,6 +196,7 @@ test('getLiftMove returns oldest request of floor lift is not at', () => {
     floor: 1,
     availableFloors: [1,2,3,4]
   };
+
   const controller = {
     liftRequests: [
       {
@@ -228,6 +228,7 @@ test('getLiftMove returns oldest request of floor lift is not at', () => {
       lift: lift, 
       controller: controller
     });
+
   expect(result).toBe(3);
 })
 
@@ -237,11 +238,11 @@ const applyMoveEvent = (
   state: SystemState, 
   moveEvent: LiftArrivalEvent)
   : SystemState => {
-  return {
-    lift: processLiftArrivalEventForLift(state.lift, moveEvent),
-    controller: processLiftArrivalEventForController(state.controller, moveEvent)
+    return {
+      lift: processLiftArrivalEventForLift(state.lift, moveEvent),
+      controller: processLiftArrivalEventForController(state.controller, moveEvent)
+    };
   };
-};
 
 const applyFloorRequestEvent = (
   state: SystemState, 
@@ -250,9 +251,8 @@ const applyFloorRequestEvent = (
     return {
       lift: processFloorRequestEventForLift(state.lift, event).getOrElse(lift),
       controller: state.controller
-    }
-
-  }
+    };
+  };
 
 test('Test run full sequence', () => {
   const initialState: SystemState = {
@@ -289,7 +289,6 @@ test('Test run full sequence', () => {
       ]
     }
   };
-
 });
 
 // Part 3:
@@ -299,14 +298,14 @@ interface MoveStrategy{
 
 interface SystemState2 {
   lift: Lift,
-  controller: LiftController,
-   moveStrategy: MoveStrategy
+    controller: LiftController,
+    moveStrategy: MoveStrategy
 };
 
 const firstInList = (l: [T]) : Option<T> => {
-      return (l.length)? 
-        Option.of(l[0])
-        : new None;
+  return (l.length)? 
+    Option.of(l[0])
+    : new None;
 }
 
 const getNextFloorInDirection = 
@@ -314,7 +313,6 @@ const getNextFloorInDirection =
     controller: LiftController, 
     d: Direction)
   : Option<Floor> => {
-    console.log({d});
     switch (d) {
       case Direction.Up: {
         const requestedFloorsAbove = 
@@ -324,7 +322,6 @@ const getNextFloorInDirection =
           .concat(controller.liftRequests.map(r => r.onFloor))
           .filter(f => f > lift.floor)
           .sort();
-        console.log({requestedFloorsAbove})
         return firstInList(requestedFloorsAbove)
       }
       case Direction.Down: {
@@ -336,9 +333,9 @@ const getNextFloorInDirection =
           .filter(f => f < lift.floor)
           .sort(f => 0-f);
         return firstInList(requestedFloorsBelow);
-    }
-  }
-}
+      }
+    };
+  };
 
 const getSome = (opt1: Option<T>, opt2: Option<T>): Option<T> => {
   return !(opt1.isEmpty())? opt1: opt2;
@@ -361,7 +358,7 @@ test('getFirstSome returns first some from the list', () => {
   expect(getFirstSome([Option.of(1), new None])).toEqual(Option.of(1));
   expect(getFirstSome([Option.of(1), new None, Option.of(2)])).toEqual(Option.of(1));
 });
-  
+
 const getLiftMoveStrategy2 = (state: SystemState2): Floor => {
   const lift: Lift = state.lift;
   const controller: LiftController = state.controller;
@@ -369,24 +366,18 @@ const getLiftMoveStrategy2 = (state: SystemState2): Floor => {
 
   const nextDirectionalFloor: Option<Floor> = 
     moveDirection.flatMap(d => getNextFloorInDirection(lift, controller, d));
-  console.log({nextDirectionalFloor})
-
   const oldestControllerFloorRequest: Option<Floor> =
     firstInList(state.controller.liftRequests.sort(r => r.timeEpoch).map(r => r.onFloor));
-
-  console.log({oldestControllerFloorRequest})
-
   const nextLiftRequestFloor: Option<Floor> = 
     firstInList(state.lift.floorRequests.map(r => r.floor));
-
-  console.log({nextLiftRequestFloor})
 
   return getFirstSome(
     [
       nextDirectionalFloor, 
       oldestControllerFloorRequest, 
       nextLiftRequestFloor
-    ]).getOrElse(lift.Floor);
+    ])
+    .getOrElse(lift.Floor);
 }
 
 
