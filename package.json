@@ -16,5 +16,8 @@
   "scripts": {
     "start": "tsc && node dist/app.js",
     "test": "jest"
+  },
+  "dependencies": {
+    "tsoption": "^0.7.0"
   }
 }
