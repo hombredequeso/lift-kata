@@ -88,7 +88,7 @@ test('LiftArrivalEvent returns new lift state', () => {
   });
 })
 
-test('LiftArrivedAtEvent returns new controller state, empty state', () => {
+test('LiftArrivedAtEvent returns new LiftRequests state, empty state', () => {
   const initialState: LiftRequests = 
     []
   
@@ -96,13 +96,13 @@ test('LiftArrivedAtEvent returns new controller state, empty state', () => {
     floor: 0
   };
 
-  const newState: LiftRequests = processLiftArrivalEventForController(initialState, event);
+  const newState: LiftRequests = processLiftArrivalEventForLiftRequests(initialState, event);
 
   expect(newState).toEqual([]);
   expect(initialState).toEqual([]);
 })
 
-test('LiftArrivedAtEvent returns new controller state, removing all floor events', () => {
+test('LiftArrivedAtEvent returns new LiftRequests state, removing all floor events', () => {
   const initialState: LiftRequests = 
     [{
       onFloor: 0,
@@ -119,7 +119,7 @@ test('LiftArrivedAtEvent returns new controller state, removing all floor events
   };
 
   const newState: LiftRequests = 
-    processLiftArrivalEventForController(initialState, event);
+    processLiftArrivalEventForLiftRequests(initialState, event);
 
   expect(newState).toEqual(
     [{
@@ -129,7 +129,7 @@ test('LiftArrivedAtEvent returns new controller state, removing all floor events
     }]);
 })
 
-const processLiftArrivalEventForController = (
+const processLiftArrivalEventForLiftRequests = (
   requests: LiftRequests, 
   event: LiftArrivedAtEvent)
   : LiftRequests => {
@@ -139,7 +139,7 @@ const processLiftArrivalEventForController = (
 const listAppend = (ts: [T], t: T): [T] => [...ts, t];
 const processLiftRequestEvent = listAppend;
 
-test('processLiftRequestEvent returns new controller state', () => {
+test('processLiftRequestEvent returns new LiftRequests state', () => {
   const initialState: LiftRequests = [];
   const buttonPress: LiftRequestButtonPressedEvent = {
     onFloor: 0,
@@ -156,14 +156,14 @@ test('processLiftRequestEvent returns new controller state', () => {
 
 interface SystemState {
   lift: Lift,
-    controller: LiftRequests
+    liftRequests: LiftRequests
 };
 
 
 const getLiftMoveStrategy1 = (state: SystemState): Floor => {
   const orderedRequests = 
     state
-    .controller
+    .liftRequests
     .filter(r => r.onFloor !== state.lift.floor)
     .filter(r => state.lift.availableFloors.includes(r.onFloor))
     .sort(r => r.timeEpoch);
@@ -178,7 +178,7 @@ test('getLiftMove returns oldest request of floor lift is not at', () => {
     availableFloors: [1,2,3,4]
   };
 
-  const controller = 
+  const liftRequests = 
     [
       {
         onFloor: 1,
@@ -206,7 +206,7 @@ test('getLiftMove returns oldest request of floor lift is not at', () => {
   const result = getLiftMoveStrategy1(
     {
       lift: lift, 
-      controller: controller
+      liftRequests: liftRequests
     });
 
   expect(result).toBe(3);
@@ -220,7 +220,7 @@ const applyMoveEvent = (
   : SystemState => {
     return {
       lift: processLiftArrivalEventForLift(state.lift, moveEvent),
-      controller: processLiftArrivalEventForController(state.controller, moveEvent)
+      liftRequests: processLiftArrivalEventForLiftRequests(state.liftRequests, moveEvent)
     };
   };
 
@@ -230,7 +230,7 @@ const applyFloorRequestEvent = (
   : SystemState => {
     return {
       lift: processFloorRequestEventForLift(state.lift, event).getOrElse(lift),
-      controller: state.controller
+      liftRequests: state.liftRequests
     };
   };
 
@@ -241,7 +241,7 @@ test('Test run full sequence', () => {
       availableFloors: [1,2,3,4,5,9,10, 11, 12, 13, 20],
       floorRequests: []
     },
-    controller: 
+    liftRequests: 
        [
         {
           onFloor: 4,
@@ -263,7 +263,7 @@ test('Test run full sequence', () => {
       availableFloors: [1,2,3,4,5,9,10, 11, 12, 13, 20],
       floorRequests: []
     },
-    controller: {
+    liftRequests: {
       liftRequests: [
       ]
     }
@@ -277,7 +277,7 @@ interface MoveStrategy{
 
 interface SystemState2 {
   lift: Lift,
-    controller: LiftRequests,
+    liftRequests: LiftRequests,
     moveStrategy: MoveStrategy
 };
 
@@ -289,7 +289,7 @@ const firstInList = (l: [T]) : Option<T> => {
 
 const getNextFloorInDirection = 
   (lift: Lift, 
-    controller: LiftRequests, 
+    liftRequests: LiftRequests, 
     d: Direction)
   : Option<Floor> => {
     switch (d) {
@@ -298,7 +298,7 @@ const getNextFloorInDirection =
           lift
           .floorRequests
           .map(r => r.floor)
-          .concat(controller.map(r => r.onFloor))
+          .concat(liftRequests.map(r => r.onFloor))
           .filter(f => f > lift.floor)
           .sort();
         return firstInList(requestedFloorsAbove)
@@ -308,7 +308,7 @@ const getNextFloorInDirection =
           lift
           .floorRequests
           .map(r => r.floor)
-          .concat(controller.map(r => r.onFloor))
+          .concat(liftRequests.map(r => r.onFloor))
           .filter(f => f < lift.floor)
           .sort(f => 0-f);
         return firstInList(requestedFloorsBelow);
@@ -340,20 +340,20 @@ test('getFirstSome returns first some from the list', () => {
 
 const getLiftMoveStrategy2 = (state: SystemState2): Floor => {
   const lift: Lift = state.lift;
-  const controller: LiftRequests = state.controller;
+  const liftRequests: LiftRequests = state.liftRequests;
   const moveDirection: Option<Direction> = state.moveStrategy.direction;
 
   const nextDirectionalFloor: Option<Floor> = 
-    moveDirection.flatMap(d => getNextFloorInDirection(lift, controller, d));
-  const oldestControllerFloorRequest: Option<Floor> =
-    firstInList(state.controller.sort(r => r.timeEpoch).map(r => r.onFloor));
+    moveDirection.flatMap(d => getNextFloorInDirection(lift, liftRequests, d));
+  const oldestLiftRequestsFloorRequest: Option<Floor> =
+    firstInList(state.liftRequests.sort(r => r.timeEpoch).map(r => r.onFloor));
   const nextLiftRequestFloor: Option<Floor> = 
     firstInList(state.lift.floorRequests.map(r => r.floor));
 
   return getFirstSome(
     [
       nextDirectionalFloor, 
-      oldestControllerFloorRequest, 
+      oldestLiftRequestsFloorRequest, 
       nextLiftRequestFloor
     ])
     .getOrElse(lift.Floor);
@@ -366,7 +366,7 @@ test('getLiftMoveStrategy2 returns expected result', () => {
     availableFloors: [1,2,3,4],
     floorRequests: [4]
   };
-  const controller: LiftRequests = [
+  const liftRequests: LiftRequests = [
       {
         onFloor: 1,
         direction: Direction.Up,
@@ -397,7 +397,7 @@ test('getLiftMoveStrategy2 returns expected result', () => {
   const result = getLiftMoveStrategy2(
     {
       lift: lift, 
-      controller: controller,
+      liftRequests: liftRequests,
       moveStrategy: moveStrategy
     });
 
