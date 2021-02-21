@@ -156,7 +156,7 @@ test('processLiftRequestEvent returns new LiftRequests state', () => {
 
 interface SystemState {
   lift: Lift,
-    liftRequests: LiftRequests
+  liftRequests: LiftRequests
 };
 
 
