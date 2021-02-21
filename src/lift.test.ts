@@ -270,15 +270,12 @@ test('Test run full sequence', () => {
   };
 });
 
-// Part 3:
-interface MoveStrategy{
-  direction: Option<Direction>
-}
 
+// Part 3:
 interface SystemState2 {
   lift: Lift,
+  direction: Option<Direction>
     liftRequests: LiftRequests,
-    moveStrategy: MoveStrategy
 };
 
 const firstInList = (l: [T]) : Option<T> => {
@@ -341,7 +338,7 @@ test('getFirstSome returns first some from the list', () => {
 const getLiftMoveStrategy2 = (state: SystemState2): Floor => {
   const lift: Lift = state.lift;
   const liftRequests: LiftRequests = state.liftRequests;
-  const moveDirection: Option<Direction> = state.moveStrategy.direction;
+  const moveDirection: Option<Direction> = state.direction;
 
   const nextDirectionalFloor: Option<Floor> = 
     moveDirection.flatMap(d => getNextFloorInDirection(lift, liftRequests, d));
@@ -390,15 +387,11 @@ test('getLiftMoveStrategy2 returns expected result', () => {
       }
     ];
 
-  const moveStrategy = {
-    direction: Option.of(Direction.Up)
-  };
-
   const result = getLiftMoveStrategy2(
     {
       lift: lift, 
+      direction: Option.of(Direction.Up),
       liftRequests: liftRequests,
-      moveStrategy: moveStrategy
     });
 
   expect(result).toBe(3);
