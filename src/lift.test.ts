@@ -5,7 +5,6 @@ type EpochTime = number;
 
 enum Direction {Up,  Down};
 
-
 // Events:
 
 interface LiftRequestButtonPressedEvent {
@@ -32,17 +31,7 @@ interface Lift {
   floorRequests: [FloorRequestButtonPressedEvent]
 }
 
-
 // The Rest...
-test('Can create a valid lift', () => {
-  const lift = {
-    floor: 0,
-    availableFloors: [0,1,2,3],
-    floorRequests: []
-  };
-  expect(lift.floor).toBe(0);
-});
-
 
 const processFloorRequestEventForLift = (
   lift: Lift,
@@ -67,6 +56,63 @@ const processLiftArrivalEventForLift = (
       floorRequests: lift.floorRequests.filter(r => r.floor !== event.floor)
     };
   }
+
+const processLiftArrivalEventForLiftRequests = (
+  requests: LiftRequests, 
+  event: LiftArrivedAtEvent)
+  : LiftRequests => {
+    return requests.filter(x => x.onFloor !== event.floor);
+  };
+
+const listAppend = (ts: [T], t: T): [T] => [...ts, t];
+const processLiftRequestEvent = listAppend;
+
+interface SystemState {
+  lift: Lift,
+  liftRequests: LiftRequests
+};
+
+const getLiftMoveStrategy1 = (state: SystemState): Floor => {
+  const orderedRequests = 
+    state
+    .liftRequests
+    .filter(r => r.onFloor !== state.lift.floor)
+    .filter(r => state.lift.availableFloors.includes(r.onFloor))
+    .sort(r => r.timeEpoch);
+  return (orderedRequests.length > 0)?  
+    orderedRequests[0].onFloor :
+    lift.floor;
+}
+
+const applyMoveEvent = (
+  state: SystemState, 
+  moveEvent: LiftArrivalEvent)
+  : SystemState => {
+    return {
+      lift: processLiftArrivalEventForLift(state.lift, moveEvent),
+      liftRequests: processLiftArrivalEventForLiftRequests(state.liftRequests, moveEvent)
+    };
+  };
+
+const applyFloorRequestEvent = (
+  state: SystemState, 
+  event: FloorRequestButtonPressedEvent)
+  : SystemState => {
+    return {
+      lift: processFloorRequestEventForLift(state.lift, event).getOrElse(lift),
+      liftRequests: state.liftRequests
+    };
+  };
+
+
+test('Can create a valid lift', () => {
+  const lift = {
+    floor: 0,
+    availableFloors: [0,1,2,3],
+    floorRequests: []
+  };
+  expect(lift.floor).toBe(0);
+});
 
 test('LiftArrivalEvent returns new lift state', () => {
   const initialLift: Lift= {
@@ -129,16 +175,6 @@ test('LiftArrivedAtEvent returns new LiftRequests state, removing all floor even
     }]);
 })
 
-const processLiftArrivalEventForLiftRequests = (
-  requests: LiftRequests, 
-  event: LiftArrivedAtEvent)
-  : LiftRequests => {
-    return requests.filter(x => x.onFloor !== event.floor);
-  };
-
-const listAppend = (ts: [T], t: T): [T] => [...ts, t];
-const processLiftRequestEvent = listAppend;
-
 test('processLiftRequestEvent returns new LiftRequests state', () => {
   const initialState: LiftRequests = [];
   const buttonPress: LiftRequestButtonPressedEvent = {
@@ -153,24 +189,6 @@ test('processLiftRequestEvent returns new LiftRequests state', () => {
   expect(initialState).toEqual([]);
 })
 
-
-interface SystemState {
-  lift: Lift,
-  liftRequests: LiftRequests
-};
-
-
-const getLiftMoveStrategy1 = (state: SystemState): Floor => {
-  const orderedRequests = 
-    state
-    .liftRequests
-    .filter(r => r.onFloor !== state.lift.floor)
-    .filter(r => state.lift.availableFloors.includes(r.onFloor))
-    .sort(r => r.timeEpoch);
-  return (orderedRequests.length > 0)?  
-    orderedRequests[0].onFloor :
-    lift.floor;
-}
 
 test('getLiftMove returns oldest request of floor lift is not at', () => {
   const lift: Lift = {
@@ -213,26 +231,6 @@ test('getLiftMove returns oldest request of floor lift is not at', () => {
 })
 
 
-
-const applyMoveEvent = (
-  state: SystemState, 
-  moveEvent: LiftArrivalEvent)
-  : SystemState => {
-    return {
-      lift: processLiftArrivalEventForLift(state.lift, moveEvent),
-      liftRequests: processLiftArrivalEventForLiftRequests(state.liftRequests, moveEvent)
-    };
-  };
-
-const applyFloorRequestEvent = (
-  state: SystemState, 
-  event: FloorRequestButtonPressedEvent)
-  : SystemState => {
-    return {
-      lift: processFloorRequestEventForLift(state.lift, event).getOrElse(lift),
-      liftRequests: state.liftRequests
-    };
-  };
 
 test('Test run full sequence', () => {
   const initialState: SystemState = {
