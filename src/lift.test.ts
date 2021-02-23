@@ -1,9 +1,10 @@
 import { Option, None, Some } from 'tsoption'
+import {Direction} from './lift.functional'
 
 type Floor = number;
 type EpochTime = number;
 
-enum Direction {Up,  Down};
+// enum Direction {Up,  Down};
 
 // Events:
 
