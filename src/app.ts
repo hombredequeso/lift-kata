@@ -1,6 +1,4 @@
 import {Direction, Floor, EpochTime, 
-  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivalEvent} from './lift.functional'
-
-const a: Floor = 99;
+  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivalEvent, listAppend} from './lift.functional'
 
 console.log("hello world");

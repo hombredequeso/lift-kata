@@ -1,101 +1,12 @@
 import { Option, None, Some } from 'tsoption'
 import {Direction, Floor, EpochTime, 
-  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivalEvent} from './lift.functional'
-
-// type Floor = number;
-// type EpochTime = number;
-
-// enum Direction {Up,  Down};
-
-// Events:
-
-
-// System State: 
-
-type LiftRequests =  [LiftRequestButtonPressedEvent]
-
-interface Lift {
-  floor: Floor,
-  availableFloors: [Floor],
-  floorRequests: [FloorRequestButtonPressedEvent]
-}
-
-// The Rest...
-
-const processFloorRequestEventForLift = (
-  lift: Lift,
-  event: FloorRequestButtonPressedEvent
-): Option<Lift> => {
-  return (lift.availableFloors.includes(event.floor))? 
-    Option.of({
-      floor: lift.floor,
-      availableFloors: lift.availableFloors,
-      floorRequests: [...lift.floorRequests, event]
-    }):
-    new None;
-};
-
-const processLiftArrivalEventForLift = (
-  lift: Lift, 
-  event: LiftArrivedAtEvent)
-  : Lift=> {
-    return {
-      floor: event.floor,
-      availableFloors: lift.availableFloors,
-      floorRequests: lift.floorRequests.filter(r => r.floor !== event.floor)
-    };
-  }
-
-const processLiftArrivalEventForLiftRequests = (
-  requests: LiftRequests, 
-  event: LiftArrivedAtEvent)
-  : LiftRequests => {
-    return requests.filter(x => x.onFloor !== event.floor);
-  };
-
-const listAppend = (ts: [T], t: T): [T] => [...ts, t];
-const processLiftRequestEvent = listAppend;
-
-interface SystemState {
-  lift: Lift,
-  liftRequests: LiftRequests
-};
-
-const getLiftMoveStrategy1 = (state: SystemState): Floor => {
-  const orderedRequests = 
-    state
-    .liftRequests
-    .filter(r => r.onFloor !== state.lift.floor)
-    .filter(r => state.lift.availableFloors.includes(r.onFloor))
-    .sort(r => r.timeEpoch);
-  return (orderedRequests.length > 0)?  
-    orderedRequests[0].onFloor :
-    lift.floor;
-}
-
-const applyMoveEvent = (
-  state: SystemState, 
-  moveEvent: LiftArrivalEvent)
-  : SystemState => {
-    return {
-      lift: processLiftArrivalEventForLift(state.lift, moveEvent),
-      liftRequests: processLiftArrivalEventForLiftRequests(state.liftRequests, moveEvent)
-    };
-  };
-
-const applyFloorRequestEvent = (
-  state: SystemState, 
-  event: FloorRequestButtonPressedEvent)
-  : SystemState => {
-    return {
-      lift: processFloorRequestEventForLift(state.lift, event).getOrElse(lift),
-      liftRequests: state.liftRequests
-    };
-  };
-
+  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivalEvent,listAppend,
+  LiftRequests, Lift,
+  processFloorRequestEventForLift, processLiftArrivalEventForLift, processLiftArrivalEventForLiftRequests,
+  processLiftRequestEvent, SystemState, getLiftMoveStrategy1, applyMoveEvent, applyFloorRequestEvent} from './lift.functional'
 
 test('Can create a valid lift', () => {
-  const lift = {
+  const lift: Lift = {
     floor: 0,
     availableFloors: [0,1,2,3],
     floorRequests: []
@@ -182,7 +93,8 @@ test('processLiftRequestEvent returns new LiftRequests state', () => {
 test('getLiftMove returns oldest request of floor lift is not at', () => {
   const lift: Lift = {
     floor: 1,
-    availableFloors: [1,2,3,4]
+    availableFloors: [1,2,3,4],
+    floorRequests: []
   };
 
   const liftRequests = 
@@ -250,10 +162,7 @@ test('Test run full sequence', () => {
       availableFloors: [1,2,3,4,5,9,10, 11, 12, 13, 20],
       floorRequests: []
     },
-    liftRequests: {
-      liftRequests: [
-      ]
-    }
+    liftRequests: []
   };
 });
 
@@ -265,7 +174,7 @@ interface SystemState2 {
     liftRequests: LiftRequests,
 };
 
-const firstInList = (l: [T]) : Option<T> => {
+const firstInList = <T>(l: T[]) : Option<T> => {
   return (l.length)? 
     Option.of(l[0])
     : new None;
@@ -300,26 +209,27 @@ const getNextFloorInDirection =
     };
   };
 
-const getSome = (opt1: Option<T>, opt2: Option<T>): Option<T> => {
+const getSome = <T>(opt1: Option<T>, opt2: Option<T>): Option<T> => {
   return !(opt1.isEmpty())? opt1: opt2;
 }
 
 test('getSome returns first something', () => {
-  expect(getSome(Option.of(1), Option.of(2))).toEqual(Option.of(1));
-  expect(getSome(Option.of(1), new None)).toEqual(Option.of(1));
-  expect(getSome(new None, Option.of(2))).toEqual(Option.of(2));
-  expect(getSome(new None, new None)).toEqual(new None);
+  const o1: Some<number> = Option.of<number>(1);
+  expect(getSome<number>(o1, Option.of(2))).toEqual(Option.of(1));
+  expect(getSome<number>(Option.of<number>(1), new None)).toEqual(Option.of(1));
+  expect(getSome<number>(new None<number>(), Option.of(2))).toEqual(Option.of(2));
+  expect(getSome<number>(new None<number>(), new None)).toEqual(new None);
 });
 
-const getFirstSome = (l: [Option<T>]): Option<T> => l.reduce(getSome, new None);
+const getFirstSome = <T>(l: Option<T>[]): Option<T> => l.reduce(getSome, new None);
 
 test('getFirstSome returns first some from the list', () => {
-  expect(getFirstSome([])).toEqual(new None);
-  expect(getFirstSome([new None])).toEqual(new None);
-  expect(getFirstSome([Option.of(1)])).toEqual(Option.of(1));
-  expect(getFirstSome([Option.of(1), Option.of(2)])).toEqual(Option.of(1));
-  expect(getFirstSome([Option.of(1), new None])).toEqual(Option.of(1));
-  expect(getFirstSome([Option.of(1), new None, Option.of(2)])).toEqual(Option.of(1));
+  expect(getFirstSome<number>([])).toEqual(new None);
+  expect(getFirstSome<number>([new None])).toEqual(new None);
+  expect(getFirstSome<number>([Option.of(1)])).toEqual(Option.of(1));
+  expect(getFirstSome<number>([Option.of(1), Option.of(2)])).toEqual(Option.of(1));
+  expect(getFirstSome<number>([Option.of(1), new None])).toEqual(Option.of(1));
+  expect(getFirstSome<number>([Option.of(1), new None, Option.of(2)])).toEqual(Option.of(1));
 });
 
 const getLiftMoveStrategy2 = (state: SystemState2): Floor => {
@@ -340,15 +250,16 @@ const getLiftMoveStrategy2 = (state: SystemState2): Floor => {
       oldestLiftRequestsFloorRequest, 
       nextLiftRequestFloor
     ])
-    .getOrElse(lift.Floor);
+    .getOrElse(lift.floor);
 }
 
 
 test('getLiftMoveStrategy2 returns expected result', () => {
+  const requestEvent: FloorRequestButtonPressedEvent = {floor: 4}
   const lift: Lift = {
     floor: 1,
     availableFloors: [1,2,3,4],
-    floorRequests: [4]
+    floorRequests: [requestEvent]
   };
   const liftRequests: LiftRequests = [
       {
@@ -374,10 +285,11 @@ test('getLiftMoveStrategy2 returns expected result', () => {
       }
     ];
 
+  const optionUp: Option<Direction> =Option.of<Direction>(Direction.Up);
   const result = getLiftMoveStrategy2(
     {
       lift: lift, 
-      direction: Option.of(Direction.Up),
+      direction: optionUp,
       liftRequests: liftRequests,
     });
 
