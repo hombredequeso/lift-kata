@@ -1,26 +1,14 @@
 import { Option, None, Some } from 'tsoption'
-import {Direction} from './lift.functional'
+import {Direction, Floor, EpochTime, 
+  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivalEvent} from './lift.functional'
 
-type Floor = number;
-type EpochTime = number;
+// type Floor = number;
+// type EpochTime = number;
 
 // enum Direction {Up,  Down};
 
 // Events:
 
-interface LiftRequestButtonPressedEvent {
-  onFloor: Floor,
-  direction: Direction,
-  timeEpoch: EpochTime
-};
-
-interface FloorRequestButtonPressedEvent {
-  floor: Floor;
-};
-
-interface LiftArrivalEvent {
-  floor: Floor
-}
 
 // System State: 
 

@@ -2,10 +2,21 @@
 
 export enum Direction {Up,  Down};
 
-// export { applyMoveEvent };
-//
-//
-//
-// import { Option, None, Some } from 'tsoption'
-// // import {applyMoveEvent} from './lift.functional'
-// import {Direction} from './lift.functional'
+export type Floor = number;
+export type EpochTime = number;
+
+export interface LiftRequestButtonPressedEvent {
+  onFloor: Floor,
+  direction: Direction,
+  timeEpoch: EpochTime
+};
+
+export interface FloorRequestButtonPressedEvent {
+  floor: Floor;
+};
+
+export interface LiftArrivalEvent {
+  floor: Floor
+}
+
+
