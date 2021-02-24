@@ -21,7 +21,7 @@ interface LiftArrivalEvent {
   floor: Floor
 }
 
-type LiftRequests =  LiftRequestButtonPressedEvent[];
+type LiftRequests = LiftRequestButtonPressedEvent[];
 
 interface Lift {
   floor: Floor,
