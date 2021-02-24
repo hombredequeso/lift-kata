@@ -46,12 +46,15 @@ const processFloorRequestEventForLift =
 const processLiftArrivedEventForLift = 
   (lift: Lift, 
   event: LiftArrivedEvent)
-  : Lift=> (
-    {
-      floor: event.floor,
-      availableFloors: lift.availableFloors,
-      floorRequests: lift.floorRequests.filter(r => r.floor !== event.floor)
-    });
+  : Option<Lift>=> (
+    (lift.availableFloors.includes(event.floor))? 
+    Option.of<Lift>(
+      {
+        floor: event.floor,
+        availableFloors: lift.availableFloors,
+        floorRequests: lift.floorRequests.filter(r => r.floor !== event.floor)
+      }):
+    new None<Lift>());
 
 const processLiftArrivedEventForLiftRequests = 
   (requests: LiftRequests, 
@@ -85,7 +88,7 @@ const applyLiftArrivedEvent =
   moveEvent: LiftArrivedEvent)
   : SystemState => (
     {
-      lift: processLiftArrivedEventForLift(state.lift, moveEvent),
+      lift: processLiftArrivedEventForLift(state.lift, moveEvent).getOrElse(state.lift),
       liftRequests: processLiftArrivedEventForLiftRequests(state.liftRequests, moveEvent)
     });
 

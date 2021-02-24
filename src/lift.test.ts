@@ -148,13 +148,13 @@ test('LiftArrivedEvent returns new lift state', () => {
     floor: 2
   };
 
-  const newLift: Lift = processLiftArrivedEventForLift(initialLift, event);
+  const newLift: Option<Lift> = processLiftArrivedEventForLift(initialLift, event);
 
-  expect(newLift).toEqual({
+  expect(newLift).toEqual(Option.of<Lift>({
     floor: 2,
     availableFloors: [1,2,3],
     floorRequests: [{floor: 3}]
-  });
+  }));
 })
 
 test('LiftArrivedAtEvent returns new LiftRequests state, empty state', () => {
