@@ -29,39 +29,35 @@ interface Lift {
   floorRequests: FloorRequestButtonPressedEvent[]
 }
 
-const processFloorRequestEventForLift = (
-  lift: Lift,
-  event: FloorRequestButtonPressedEvent
-): Option<Lift> => {
+const processFloorRequestEventForLift = 
+  (lift: Lift,
+    event: FloorRequestButtonPressedEvent
+  )
+  : Option<Lift> => (
+    (lift.availableFloors.includes(event.floor))? 
+    Option.of<Lift>(
+      {
+        floor: lift.floor,
+        availableFloors: lift.availableFloors,
+        floorRequests: [...lift.floorRequests, event]
+      }):
+    new None<Lift>());
 
-  const newLift: Lift = {
-      floor: lift.floor,
-      availableFloors: lift.availableFloors,
-      floorRequests: [...lift.floorRequests, event]
-  };
-  return (lift.availableFloors.includes(event.floor))? 
-    Option.of<Lift>(newLift):
-    new None<Lift>();
-};
-
-const processLiftArrivedEventForLift = (
-  lift: Lift, 
+const processLiftArrivedEventForLift = 
+  (lift: Lift, 
   event: LiftArrivedEvent)
-  : Lift=> {
-    return {
+  : Lift=> (
+    {
       floor: event.floor,
       availableFloors: lift.availableFloors,
       floorRequests: lift.floorRequests.filter(r => r.floor !== event.floor)
-    };
-  }
+    });
 
-const processLiftArrivedEventForLiftRequests = (
-  requests: LiftRequests, 
+const processLiftArrivedEventForLiftRequests = 
+  (requests: LiftRequests, 
   event: LiftArrivedEvent)
-  : LiftRequests => {
-    const result: LiftRequests = requests.filter(x => x.onFloor !== event.floor);
-    return result;
-  };
+  : LiftRequests => 
+  requests.filter(x => x.onFloor !== event.floor);
 
 const processLiftRequestEvent = listAppend;
 
@@ -70,7 +66,9 @@ interface SystemState {
   liftRequests: LiftRequests
 };
 
-const getLiftMoveStrategy1 = (state: SystemState): Floor => {
+const getLiftMoveStrategy1 = 
+  (state: SystemState)
+  : Floor => {
   const orderedRequests = 
     state
     .liftRequests
@@ -82,25 +80,23 @@ const getLiftMoveStrategy1 = (state: SystemState): Floor => {
     state.lift.floor;
 }
 
-const applyMoveEvent = (
-  state: SystemState, 
+const applyMoveEvent = 
+  (state: SystemState, 
   moveEvent: LiftArrivedEvent)
-  : SystemState => {
-    return {
+  : SystemState => (
+    {
       lift: processLiftArrivedEventForLift(state.lift, moveEvent),
       liftRequests: processLiftArrivedEventForLiftRequests(state.liftRequests, moveEvent)
-    };
-  };
+    });
 
-const applyFloorRequestEvent = (
-  state: SystemState, 
+const applyFloorRequestEvent = 
+  (state: SystemState, 
   event: FloorRequestButtonPressedEvent)
-  : SystemState => {
-    return {
+  : SystemState => (
+    {
       lift: processFloorRequestEventForLift(state.lift, event).getOrElse(state.lift),
       liftRequests: state.liftRequests
-    };
-  };
+    });
 
 export {Direction, Floor, EpochTime, LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent, listAppend, LiftRequests, Lift, processFloorRequestEventForLift, processLiftArrivedEventForLift, processLiftArrivedEventForLiftRequests, processLiftRequestEvent, SystemState, getLiftMoveStrategy1, applyMoveEvent, applyFloorRequestEvent};
 
