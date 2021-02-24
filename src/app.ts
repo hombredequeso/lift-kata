@@ -1,4 +1,4 @@
-import {start as promptStart, get as promptGet } from 'prompt';
+import {start as promptStart, get as promptGet, Schema} from 'prompt';
 import {SystemState, FloorRequestButtonPressedEvent, LiftRequestButtonPressedEvent, LiftArrivedEvent,
   applyFloorRequestEvent, applyLiftRequestEvent, applyLiftArrivedEvent, Direction} 
   from './lift.functional';
@@ -24,7 +24,6 @@ const toNumber = (a: string): number => {
 
 // const split = (a: string): string[] => a.split(/[/t ]+/);
 
-promptStart();
 // const liftData = promptGet(['validFloors', 'currentFloor'])
 //   .then(function(result){
 //     const floor: string = getStr(result.currentFloor);
@@ -36,8 +35,16 @@ promptStart();
 //     };
 //   });
 
+const getFloorSchema : Schema= {
+  properties: {
+    floor: {
+      message: "floor number"
+    }
+  }
+}
+
 const getFloorRequest = (): Promise<FloorRequestButtonPressedEvent> => {
-  return promptGet(['floor'])
+  return promptGet([getFloorSchema])
     .then(function(result) {
       return {
         floor: toNumber(getStr(result.floor))
@@ -46,7 +53,7 @@ const getFloorRequest = (): Promise<FloorRequestButtonPressedEvent> => {
 }
 
 const getLiftArrivedEvent = (): Promise<LiftArrivedEvent> => {
-  return promptGet(['floor'])
+  return promptGet([getFloorSchema])
     .then(function(result) {
       return {
         floor: toNumber(getStr(result.floor))
@@ -54,24 +61,34 @@ const getLiftArrivedEvent = (): Promise<LiftArrivedEvent> => {
     });
 }
 
-const getLiftRequest = (): Promise<LiftRequestButtonPressedEvent> => {
-  return promptGet(['floor', 'direction'])
-    .then(function(result){
-      return {
-      onFloor: toNumber(getStr(result.floor)),
-      direction: toNumber(getStr(result.direction)),
-      timeEpoch: Math.round(Date.now() / 1000)
+const getDirectionSchema : Schema= {
+  properties: {
+    direction: {
+      message: "direction, 0 = up, 1 = down"
     }
-    });
-  // return Promise.resolve({
-  //   onFloor: 7,
-  //   direction: Direction.Up,
-  //   timeEpoch: 1234
-  // });
+  }
 }
 
+const getLiftRequest = (): Promise<LiftRequestButtonPressedEvent> => {
+  return promptGet([getFloorSchema, getDirectionSchema])
+    .then(function(result){
+      return {
+        onFloor: toNumber(getStr(result.floor)),
+        direction: toNumber(getStr(result.direction)),
+        timeEpoch: Math.round(Date.now() / 1000)
+      }
+    });
+}
+
+const getEventTypeSchema : Schema = {
+  properties: {
+    eventNumber: {
+      message: "event selection; 1=floor request, 2=lift request, 3=lift arrived"
+    }
+  }
+}
 const getEventType = (): Promise<number> => {
-  return promptGet(['eventNumber'])
+  return promptGet([getEventTypeSchema])
     .then(function(result) {
       return toNumber(getStr(result.eventNumber));
     });
@@ -119,22 +136,26 @@ const applyEvent = (s: SystemState, evtType: string,  e: FloorRequestButtonPress
 
 }
 
-const eventLoop = (systemState: SystemState): Promise<SystemState> => {
+// getNextState: here is the top level sequence, that takes the current systemState
+// determines what is going to happen (gets an event), applies the event to the
+// current state, and returns the new state.
+// Most importantly, this function does not mutate the 'systemState' parameter
+// but rather returns an entire new copy of the SystemState.
+const getNextState = (systemState: SystemState): Promise<SystemState> => {
   return getEventType()
     .then(function(eventNumber) { 
+      // Note that, getEvent isn't functional because it accepts user
+      // input and also gets the current time.
       return getEvent(eventNumber);
     })
     .then(function([eventType, evt]) {
+      // applyEvent is completely functional, and it is where all the
+      // important lift business logic lives.
       return applyEvent(systemState, eventType, evt);
     });
 }
 
 
-
-// const increment = (i: number): Promise<number> => {
-//   console.log({i});
-//   return Promise.resolve(i + 1);
-// }
 
 const initialState: SystemState = {
   lift: 
@@ -146,30 +167,20 @@ const initialState: SystemState = {
   liftRequests: []
 };
 
+promptStart({message:">>"});
+
+// Here's the main loop
+// i + currentState together are the mutable state. They are updated after getNextState is called.
 let i = 0;
 let currentState = initialState;
 (function loop (): any {
-  const strState = JSON.stringify(currentState);
-  console.log({i, strState});
-  return eventLoop(currentState).then((x) => {currentState = x; ++i; process.nextTick(loop)})
+  const strState = JSON.stringify(currentState, null, 2);
+  console.log({i});
+  console.log(strState);
+  // But the important bit is that getNextState will not change currentState.
+  return getNextState(currentState).then((x) => {currentState = x; ++i; process.nextTick(loop)})
 })()
-console.log("goodbye world");
 
-// var i = 0;
-// ;(function loop (): any {
+// Main loop idea a version of this:
+// https://github.com/nodejs/node/issues/6673#issuecomment-218200439
 
-//   if (i > 100000) {
-//     console.log("ending program");
-//     process.exit();
-//   }
-
-//   if (i % 100000 === 0) {
-//     return increment(i).then((x) => {i = x; process.nextTick(loop)})
-//   }
-
-//   // return increment(i).then(loop);
-//   return increment(i).then(function(x) {i=x;}).then(loop);
-// })()
-
-
-// await program();
