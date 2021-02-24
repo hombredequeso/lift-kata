@@ -2,9 +2,132 @@ import { Option, None, Some } from 'tsoption'
 import {Direction, Floor, /*EpochTime,*/ 
   LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent,
   LiftRequests, Lift,
-  /*processFloorRequestEventForLift,*/ processLiftArrivedEventForLift, processLiftArrivedEventForLiftRequests,
-  processLiftRequestEvent/*, SystemState*/, getLiftMoveStrategy1/*, applyMoveEvent, applyFloorRequestEvent*/} from './lift.functional'
+  processFloorRequestEventForLift, processLiftArrivedEventForLift, processLiftArrivedEventForLiftRequests,
+  processLiftRequestEvent, SystemState, getLiftMoveStrategy1, 
+  applyLiftArrivedEvent, applyFloorRequestEvent, applyLiftRequestEvent} from './lift.functional'
 
+test('applyLiftRequestEvent updates SystemState correctly', () => {
+  const initialState: SystemState = {
+    lift: {
+      floor: 0,
+      availableFloors: [0,1,2,3],
+      floorRequests: []
+    },
+    liftRequests: []
+  };
+  const event: LiftRequestButtonPressedEvent = {
+    onFloor: 1,
+    direction: Direction.Up,
+    timeEpoch: 999
+  };
+  const newState = applyLiftRequestEvent(initialState, event);
+
+  expect(newState).toEqual(
+    {
+      lift: {
+        floor: 0,
+        availableFloors: [0,1,2,3],
+        floorRequests: []
+      },
+        liftRequests: [event]
+      }
+  );
+});
+
+test('applyFloorRequestEvent updates SystemState correctly', () => {
+  const initialState: SystemState = {
+    lift: {
+      floor: 0,
+      availableFloors: [0,1,2,3],
+      floorRequests: []
+    },
+    liftRequests: []
+  };
+
+  const event: FloorRequestButtonPressedEvent = {
+    floor: 6
+  }
+
+  const newState = applyFloorRequestEvent(initialState, event);
+
+  expect(newState).toEqual(
+    {
+      lift: {
+        floor: 0,
+        availableFloors: [0,1,2,3],
+        floorRequests: []
+      },
+      liftRequests: []
+    }
+  );
+});
+
+test('applyLiftArrivedEvent updates SystemState', () => {
+  const initialState: SystemState = {
+    lift: {
+      floor: 0,
+      availableFloors: [0,1,2,3],
+      floorRequests: [{floor: 2}]
+    },
+    liftRequests: [{
+        onFloor: 2,
+        direction: Direction.Up,
+        timeEpoch: 999
+      }]
+  };
+
+  const event: LiftArrivedEvent = {
+    floor: 2
+  }
+
+  const newState = applyLiftArrivedEvent(initialState, event);
+
+  expect(newState).toEqual(
+    {
+      lift: {
+        floor: 2,
+        availableFloors: [0,1,2,3],
+        floorRequests: []
+      },
+      liftRequests: []
+    }
+  );
+
+});
+
+test('processFloorRequestEventForLift adds floor request if lift goes to that floor and return some lift', () => {
+  const lift: Lift = {
+    floor: 0,
+    availableFloors: [0,1,2,3],
+    floorRequests: []
+  };
+  const floorRequest = {
+    floor: 2
+  };
+  const result = processFloorRequestEventForLift(lift, floorRequest);
+
+  expect(result).toEqual(
+  Option.of<Lift>({
+    floor: 0,
+    availableFloors: [0,1,2,3],
+    floorRequests: [{floor: 2}]
+  }));
+
+});
+
+test('processFloorRequestEventForLift returns None if lift is not available on the floor', () => {
+  const lift: Lift = {
+    floor: 0,
+    availableFloors: [0,1,2,3],
+    floorRequests: []
+  };
+  const floorRequest = {
+    floor: 4
+  };
+  const result = processFloorRequestEventForLift(lift, floorRequest);
+
+  expect(result).toEqual(new None<Lift>());
+});
 test('Can create a valid lift', () => {
   const lift: Lift = {
     floor: 0,
@@ -130,41 +253,6 @@ test('getLiftMove returns oldest request of floor lift is not at', () => {
 
   expect(result).toBe(3);
 })
-
-
-
-// test('Test run full sequence', () => {
-//   const initialState: SystemState = {
-//     lift: {
-//       floor: 10,
-//       availableFloors: [1,2,3,4,5,9,10, 11, 12, 13, 20],
-//       floorRequests: []
-//     },
-//     liftRequests: 
-//        [
-//         {
-//           onFloor: 4,
-//           direction: Direction.Up,
-//           timeEpoch: 5
-//         }
-//       ]
-//   };
-
-//   const nextFloor = getLiftMoveStrategy1(initialState);
-//   const moveEvent: LiftArrivedEvent = {floor: nextFloor};
-//   const newState = applyMoveEvent(initialState, moveEvent);
-//   const floorRequestEvent: FloorRequestButtonPressedEvent = RandomlyGetOne(...)
-//   const newState2 = applyFloorRequestEvent(newState, floorRequestEvent);
-
-//   const expectedState: SystemState = {
-//     lift: {
-//       floor: 4,
-//       availableFloors: [1,2,3,4,5,9,10, 11, 12, 13, 20],
-//       floorRequests: []
-//     },
-//     liftRequests: []
-//   };
-// });
 
 
 // Part 3:

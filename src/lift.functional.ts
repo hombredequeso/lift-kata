@@ -80,7 +80,7 @@ const getLiftMoveStrategy1 =
     state.lift.floor;
 }
 
-const applyMoveEvent = 
+const applyLiftArrivedEvent = 
   (state: SystemState, 
   moveEvent: LiftArrivedEvent)
   : SystemState => (
@@ -98,5 +98,19 @@ const applyFloorRequestEvent =
       liftRequests: state.liftRequests
     });
 
-export {Direction, Floor, EpochTime, LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent, listAppend, LiftRequests, Lift, processFloorRequestEventForLift, processLiftArrivedEventForLift, processLiftArrivedEventForLiftRequests, processLiftRequestEvent, SystemState, getLiftMoveStrategy1, applyMoveEvent, applyFloorRequestEvent};
+const applyLiftRequestEvent = 
+  (state: SystemState,
+  event: LiftRequestButtonPressedEvent)
+  : SystemState => ({
+    lift: state.lift,
+    liftRequests: processLiftRequestEvent(state.liftRequests, event)
+  });
+
+export {Direction, Floor, EpochTime, 
+  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent, 
+  listAppend, LiftRequests, Lift, 
+  processFloorRequestEventForLift, processLiftArrivedEventForLift, 
+  processLiftArrivedEventForLiftRequests, processLiftRequestEvent, 
+  SystemState, getLiftMoveStrategy1, 
+  applyLiftArrivedEvent, applyFloorRequestEvent, applyLiftRequestEvent};
 
