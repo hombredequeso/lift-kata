@@ -1,6 +1,6 @@
-import { Option, None, Some } from 'tsoption'
+import { Option, None} from 'tsoption'
 
-enum Direction {Up,  Down};
+enum Direction {Up,  Down}
 
 type Floor = number;
 type EpochTime = number;
@@ -11,11 +11,11 @@ interface LiftRequestButtonPressedEvent {
   onFloor: Floor,
   direction: Direction,
   timeEpoch: EpochTime
-};
+}
 
 interface FloorRequestButtonPressedEvent {
   floor: Floor;
-};
+}
 
 interface LiftArrivedEvent {
   floor: Floor
@@ -64,7 +64,7 @@ const processLiftRequestEvent = listAppend;
 interface SystemState {
   lift: Lift,
   liftRequests: LiftRequests
-};
+}
 
 const getLiftMoveStrategy1 = 
   (state: SystemState)

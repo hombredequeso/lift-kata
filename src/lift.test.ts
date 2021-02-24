@@ -1,9 +1,9 @@
 import { Option, None, Some } from 'tsoption'
-import {Direction, Floor, EpochTime, 
-  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent,listAppend,
+import {Direction, Floor, /*EpochTime,*/ 
+  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent,
   LiftRequests, Lift,
-  processFloorRequestEventForLift, processLiftArrivedEventForLift, processLiftArrivedEventForLiftRequests,
-  processLiftRequestEvent, SystemState, getLiftMoveStrategy1, applyMoveEvent, applyFloorRequestEvent} from './lift.functional'
+  /*processFloorRequestEventForLift,*/ processLiftArrivedEventForLift, processLiftArrivedEventForLiftRequests,
+  processLiftRequestEvent/*, SystemState*/, getLiftMoveStrategy1/*, applyMoveEvent, applyFloorRequestEvent*/} from './lift.functional'
 
 test('Can create a valid lift', () => {
   const lift: Lift = {
@@ -133,38 +133,38 @@ test('getLiftMove returns oldest request of floor lift is not at', () => {
 
 
 
-test('Test run full sequence', () => {
-  const initialState: SystemState = {
-    lift: {
-      floor: 10,
-      availableFloors: [1,2,3,4,5,9,10, 11, 12, 13, 20],
-      floorRequests: []
-    },
-    liftRequests: 
-       [
-        {
-          onFloor: 4,
-          direction: Direction.Up,
-          timeEpoch: 5
-        }
-      ]
-  };
+// test('Test run full sequence', () => {
+//   const initialState: SystemState = {
+//     lift: {
+//       floor: 10,
+//       availableFloors: [1,2,3,4,5,9,10, 11, 12, 13, 20],
+//       floorRequests: []
+//     },
+//     liftRequests: 
+//        [
+//         {
+//           onFloor: 4,
+//           direction: Direction.Up,
+//           timeEpoch: 5
+//         }
+//       ]
+//   };
 
-  const nextFloor = getLiftMoveStrategy1(initialState);
-  const moveEvent: LiftArrivedEvent = {floor: nextFloor};
-  const newState = applyMoveEvent(initialState, moveEvent);
-  // const floorRequestEvent: FloorRequestButtonPressedEvent = RandomlyGetOne(...)
-  // const newState2 = applyFloorRequestEvent(newState, floorRequestEvent);
+//   const nextFloor = getLiftMoveStrategy1(initialState);
+//   const moveEvent: LiftArrivedEvent = {floor: nextFloor};
+//   const newState = applyMoveEvent(initialState, moveEvent);
+//   const floorRequestEvent: FloorRequestButtonPressedEvent = RandomlyGetOne(...)
+//   const newState2 = applyFloorRequestEvent(newState, floorRequestEvent);
 
-  const expectedState: SystemState = {
-    lift: {
-      floor: 4,
-      availableFloors: [1,2,3,4,5,9,10, 11, 12, 13, 20],
-      floorRequests: []
-    },
-    liftRequests: []
-  };
-});
+//   const expectedState: SystemState = {
+//     lift: {
+//       floor: 4,
+//       availableFloors: [1,2,3,4,5,9,10, 11, 12, 13, 20],
+//       floorRequests: []
+//     },
+//     liftRequests: []
+//   };
+// });
 
 
 // Part 3:
@@ -172,7 +172,7 @@ interface SystemState2 {
   lift: Lift,
   direction: Option<Direction>
     liftRequests: LiftRequests,
-};
+}
 
 const firstInList = <T>(l: T[]) : Option<T> => {
   return (l.length)? 
@@ -206,7 +206,7 @@ const getNextFloorInDirection =
           .sort(f => 0-f);
         return firstInList(requestedFloorsBelow);
       }
-    };
+    }
   };
 
 const getSome = <T>(opt1: Option<T>, opt2: Option<T>): Option<T> => {
