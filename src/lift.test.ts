@@ -1,8 +1,8 @@
 import { Option, None, Some } from 'tsoption'
 import {Direction, Floor, EpochTime, 
-  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivalEvent,listAppend,
+  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent,listAppend,
   LiftRequests, Lift,
-  processFloorRequestEventForLift, processLiftArrivalEventForLift, processLiftArrivalEventForLiftRequests,
+  processFloorRequestEventForLift, processLiftArrivedEventForLift, processLiftArrivedEventForLiftRequests,
   processLiftRequestEvent, SystemState, getLiftMoveStrategy1, applyMoveEvent, applyFloorRequestEvent} from './lift.functional'
 
 test('Can create a valid lift', () => {
@@ -14,18 +14,18 @@ test('Can create a valid lift', () => {
   expect(lift.floor).toBe(0);
 });
 
-test('LiftArrivalEvent returns new lift state', () => {
+test('LiftArrivedEvent returns new lift state', () => {
   const initialLift: Lift= {
     floor: 1,
     availableFloors: [1,2,3],
     floorRequests: [{floor: 2}, {floor: 3}]
   };
 
-  const event: LiftArrivalEvent = {
+  const event: LiftArrivedEvent = {
     floor: 2
   };
 
-  const newLift: Lift = processLiftArrivalEventForLift(initialLift, event);
+  const newLift: Lift = processLiftArrivedEventForLift(initialLift, event);
 
   expect(newLift).toEqual({
     floor: 2,
@@ -38,11 +38,11 @@ test('LiftArrivedAtEvent returns new LiftRequests state, empty state', () => {
   const initialState: LiftRequests = 
     []
   
-  const event: LiftArrivalEvent = {
+  const event: LiftArrivedEvent = {
     floor: 0
   };
 
-  const newState: LiftRequests = processLiftArrivalEventForLiftRequests(initialState, event);
+  const newState: LiftRequests = processLiftArrivedEventForLiftRequests(initialState, event);
 
   expect(newState).toEqual([]);
   expect(initialState).toEqual([]);
@@ -60,12 +60,12 @@ test('LiftArrivedAtEvent returns new LiftRequests state, removing all floor even
       timeEpoch: 999
     }];
 
-  const event: LiftArrivalEvent = {
+  const event: LiftArrivedEvent = {
     floor: 1,
   };
 
   const newState: LiftRequests = 
-    processLiftArrivalEventForLiftRequests(initialState, event);
+    processLiftArrivedEventForLiftRequests(initialState, event);
 
   expect(newState).toEqual(
     [{
@@ -151,7 +151,7 @@ test('Test run full sequence', () => {
   };
 
   const nextFloor = getLiftMoveStrategy1(initialState);
-  const moveEvent: LiftArrivalEvent = {floor: nextFloor};
+  const moveEvent: LiftArrivedEvent = {floor: nextFloor};
   const newState = applyMoveEvent(initialState, moveEvent);
   // const floorRequestEvent: FloorRequestButtonPressedEvent = RandomlyGetOne(...)
   // const newState2 = applyFloorRequestEvent(newState, floorRequestEvent);

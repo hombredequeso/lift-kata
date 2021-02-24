@@ -17,7 +17,7 @@ interface FloorRequestButtonPressedEvent {
   floor: Floor;
 };
 
-interface LiftArrivalEvent {
+interface LiftArrivedEvent {
   floor: Floor
 }
 
@@ -44,9 +44,9 @@ const processFloorRequestEventForLift = (
     new None<Lift>();
 };
 
-const processLiftArrivalEventForLift = (
+const processLiftArrivedEventForLift = (
   lift: Lift, 
-  event: LiftArrivalEvent)
+  event: LiftArrivedEvent)
   : Lift=> {
     return {
       floor: event.floor,
@@ -55,9 +55,9 @@ const processLiftArrivalEventForLift = (
     };
   }
 
-const processLiftArrivalEventForLiftRequests = (
+const processLiftArrivedEventForLiftRequests = (
   requests: LiftRequests, 
-  event: LiftArrivalEvent)
+  event: LiftArrivedEvent)
   : LiftRequests => {
     const result: LiftRequests = requests.filter(x => x.onFloor !== event.floor);
     return result;
@@ -84,11 +84,11 @@ const getLiftMoveStrategy1 = (state: SystemState): Floor => {
 
 const applyMoveEvent = (
   state: SystemState, 
-  moveEvent: LiftArrivalEvent)
+  moveEvent: LiftArrivedEvent)
   : SystemState => {
     return {
-      lift: processLiftArrivalEventForLift(state.lift, moveEvent),
-      liftRequests: processLiftArrivalEventForLiftRequests(state.liftRequests, moveEvent)
+      lift: processLiftArrivedEventForLift(state.lift, moveEvent),
+      liftRequests: processLiftArrivedEventForLiftRequests(state.liftRequests, moveEvent)
     };
   };
 
@@ -102,5 +102,5 @@ const applyFloorRequestEvent = (
     };
   };
 
-export {Direction, Floor, EpochTime, LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivalEvent, listAppend, LiftRequests, Lift, processFloorRequestEventForLift, processLiftArrivalEventForLift, processLiftArrivalEventForLiftRequests, processLiftRequestEvent, SystemState, getLiftMoveStrategy1, applyMoveEvent, applyFloorRequestEvent};
+export {Direction, Floor, EpochTime, LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent, listAppend, LiftRequests, Lift, processFloorRequestEventForLift, processLiftArrivedEventForLift, processLiftArrivedEventForLiftRequests, processLiftRequestEvent, SystemState, getLiftMoveStrategy1, applyMoveEvent, applyFloorRequestEvent};
 
