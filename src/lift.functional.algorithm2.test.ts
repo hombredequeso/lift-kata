@@ -28,7 +28,7 @@ test('getLiftMoveStrategy returns expected result: basic test', () => {
   const lift: Lift = {
     floor: 1,
     availableFloors: [1,2,3,4],
-    floorRequests: [requestEvent]
+    floorRequests: []
   };
   const liftRequests: LiftRequests = [
       {

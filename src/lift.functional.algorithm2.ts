@@ -15,6 +15,48 @@ const firstInList = <T>(l: T[]) : Option<T> => {
     : new None;
 }
 
+// Option semigroup:
+const optionSemiGroup = <T>(aO: Option<T>, bO: Option<T>, f: (x: T, y: T) => T) : Option<T> => {
+  return aO.flatMap(a => bO.map(b => f(a,b)));
+}
+
+const gt = (a: number, b: number) => a > b;
+const lt = (a: number, b: number) => a < b;
+
+const forwardSort = (a: number, b: number) => a -b;
+const reverseSort = (a: number, b: number) => b - a;
+
+// filters by op, then sorts by sorter, then returns first in list or None
+// Will be used to find the next appropriate floor request (as) based on current floor (a). Find > or < (op) and sort floors going up or down (sorter)
+const getNextMatch =
+  (a: number,
+    as: number[],
+    op: (a: number, b: number) => boolean,
+    sorter: (a: number, b: number) => number
+  )
+  : Option<number> => 
+  firstInList(as.filter(op).sort(sorter));
+
+
+const getNext =
+  (lift: Lift, 
+    liftRequests: LiftRequests, 
+    d: Direction,
+    op1: (a: number, b: number) => boolean,
+    requestDirection: Direction,
+    sorter: (a: number, b: number) => number
+  )
+  : Option<Floor> => {
+        const requestedFloorsAbove = 
+          lift
+          .floorRequests
+          .map(r => r.floor)
+          .concat(liftRequests.filter(r => r.direction === requestDirection).map(r => r.onFloor))
+          .filter(f => op1(f, lift.floor))
+          .sort(sorter);
+        return firstInList(requestedFloorsAbove)
+  }
+
 const getNextFloorInDirection = 
   (lift: Lift, 
     liftRequests: LiftRequests, 
@@ -22,24 +64,10 @@ const getNextFloorInDirection =
   : Option<Floor> => {
     switch (d) {
       case Direction.Up: {
-        const requestedFloorsAbove = 
-          lift
-          .floorRequests
-          .map(r => r.floor)
-          .concat(liftRequests.filter(r => r.direction === Direction.Up).map(r => r.onFloor))
-          .filter(f => f > lift.floor)
-          .sort();
-        return firstInList(requestedFloorsAbove)
+        return getNext(lift, liftRequests, d, gt, Direction.Up, forwardSort);
       }
       case Direction.Down: {
-        const requestedFloorsBelow = 
-          lift
-          .floorRequests
-          .map(r => r.floor)
-          .concat(liftRequests.filter(r => r.direction === Direction.Down).map(r => r.onFloor))
-          .filter(f => f < lift.floor)
-          .sort(f => 0-f);
-        return firstInList(requestedFloorsBelow);
+        return getNext(lift, liftRequests, d, lt, Direction.Down, reverseSort);
       }
     }
   };
@@ -51,24 +79,10 @@ const getNextFloorInDirectionRequestedOpposite =
   : Option<Floor> => {
     switch (d) {
       case Direction.Up: {
-        const requestedFloorsAbove = 
-          lift
-          .floorRequests
-          .map(r => r.floor)
-          .concat(liftRequests.filter(r => r.direction === Direction.Down).map(r => r.onFloor))
-          .filter(f => f > lift.floor)
-          .sort(f => 0-f);
-        return firstInList(requestedFloorsAbove)
+        return getNext(lift, liftRequests, d, gt, Direction.Down, reverseSort);
       }
       case Direction.Down: {
-        const requestedFloorsBelow = 
-          lift
-          .floorRequests
-          .map(r => r.floor)
-          .concat(liftRequests.filter(r => r.direction === Direction.Up).map(r => r.onFloor))
-          .filter(f => f < lift.floor)
-          .sort();
-        return firstInList(requestedFloorsBelow);
+        return getNext(lift, liftRequests, d, lt, Direction.Up, forwardSort);
       }
     }
   };
