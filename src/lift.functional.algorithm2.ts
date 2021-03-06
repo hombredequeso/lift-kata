@@ -5,7 +5,7 @@ import { Direction, Floor, /*EpochTime,*/
 
 interface SystemState {
   lift: Lift,
-  direction: Option<Direction>
+  direction: Option<Direction>,
     liftRequests: LiftRequests,
 }
 
