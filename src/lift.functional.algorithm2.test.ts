@@ -1,8 +1,13 @@
 import { Option, None, Some} from 'tsoption'
 import {Direction, 
-  LiftRequests, Lift, FloorRequestButtonPressedEvent} from './lift.functional'
+  LiftRequests, Lift, Floor, FloorRequestButtonPressedEvent
+} from './lift.functional'
 
-import {SystemState, getSome, getFirstSome, getLiftMoveStrategy} from './lift.functional.algorithm2';
+import {
+  SystemState, getSome, getFirstSome, 
+  getLiftMoveStrategy, getNextFloorRequest,
+  gt, lt, forwardSort, reverseSort
+} from './lift.functional.algorithm2';
 
 test('getSome returns first something', () => {
   const o1: Some<number> = Option.of<number>(1);
@@ -12,6 +17,15 @@ test('getSome returns first something', () => {
   expect(getSome<number>(new None<number>(), new None)).toEqual(new None);
 });
 
+test('sort order', () => {
+  expect([3,7,1].sort(forwardSort)).toEqual([1,3,7])
+  expect([3,7,1].sort(reverseSort)).toEqual([7,3,1])
+});
+
+test('gt and lt', () => {
+  expect([1,2,3,4].filter(x => gt(x, 3))).toEqual([4])
+
+});
 
 test('getFirstSome returns first some from the list', () => {
   expect(getFirstSome<number>([])).toEqual(new None);
@@ -22,6 +36,25 @@ test('getFirstSome returns first some from the list', () => {
   expect(getFirstSome<number>([Option.of(1), new None, Option.of(2)])).toEqual(Option.of(1));
 });
 
+const tenFloors: Floor[] = [1,2,3,4,5,6,7,8,9,10]
+test.each([
+  ['No floor requests returns none', 
+    {floor: 5, availableFloors: tenFloors, floorRequests:[]}, Direction.Up, 
+    new None()],
+  ['No floor requests in direction returns none',
+    {floor: 5, availableFloors: tenFloors, floorRequests:[{floor: 2}]}, Direction.Up, 
+    new None()],
+  ['Got floor request in direction returns that floor',
+    {floor: 5, availableFloors: tenFloors, floorRequests:[{floor: 6}]}, Direction.Up, 
+    Option.of<Floor>(6)],
+  ['Got multiple floor request in up direction returns first available floor',
+    {floor: 5, availableFloors: tenFloors, floorRequests:[{floor: 7},{floor: 6}]}, Direction.Up, Option.of<Floor>(6)],
+  ['Got floor request in down direction returns that floor, ',
+    {floor: 5, availableFloors: tenFloors, floorRequests:[{floor: 3}]}, Direction.Down, 
+    Option.of<Floor>(3)]
+])('getNextFloorRequest floor: %p', (s, lift, direction, expectedFloor) => {
+  expect(getNextFloorRequest(lift, direction)).toEqual(expectedFloor);
+});
 
 test('getLiftMoveStrategy returns expected result: basic test', () => {
   const requestEvent: FloorRequestButtonPressedEvent = {floor: 4}

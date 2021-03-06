@@ -26,16 +26,45 @@ const lt = (a: number, b: number) => a < b;
 const forwardSort = (a: number, b: number) => a -b;
 const reverseSort = (a: number, b: number) => b - a;
 
-// filters by op, then sorts by sorter, then returns first in list or None
-// Will be used to find the next appropriate floor request (as) based on current floor (a). Find > or < (op) and sort floors going up or down (sorter)
-const getNextMatch =
-  (a: number,
-    as: number[],
-    op: (a: number, b: number) => boolean,
-    sorter: (a: number, b: number) => number
+const getMatchInListsFromBoundary =
+  (l1: number[],
+  l2: number[],
+  boundary: number,
+  filterOp: (a: number, b: number) => boolean,
+  sortOp: (a: number, b: number) => number
   )
-  : Option<number> => 
-  firstInList(as.filter(op).sort(sorter));
+  : Option<number> => {
+      const l1b = l1.filter(x => filterOp(x, boundary)).sort(sortOp);
+      const l2b = l2.filter(x => filterOp(x, boundary)).sort(sortOp);
+      const result = l1b.find(r => l2b.includes(r))
+    return Option.of<number>(result);
+  }
+
+const getNextFloorRequest = 
+  (lift: Lift,
+    direction: Direction)
+  : Option<Floor> => {
+    switch (direction) {
+      case Direction.Up: {
+        return getMatchInListsFromBoundary(
+          lift.floorRequests.map(r => r.floor),
+          lift.availableFloors,
+          lift.floor,
+          gt,
+          forwardSort);
+      }
+      case Direction.Down: {
+        return getMatchInListsFromBoundary(
+          lift.floorRequests.map(r => r.floor),
+          lift.availableFloors,
+          lift.floor,
+          lt,
+          reverseSort);
+      }
+    }
+
+    return new None();
+  }
 
 
 const getNext =
@@ -132,4 +161,4 @@ const getLiftMoveStrategy = (state: SystemState): Floor => {
 }
 
 
-export {SystemState, firstInList, getNextFloorInDirection, getSome, getFirstSome, getLiftMoveStrategy};
+export {SystemState, firstInList, getNextFloorInDirection, getSome, getFirstSome, getLiftMoveStrategy, getNextFloorRequest, gt, lt, forwardSort, reverseSort};
