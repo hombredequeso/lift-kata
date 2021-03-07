@@ -49,10 +49,19 @@ const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
         (a,b) => (a > b),
         (a,b) => (a - b)
       );
-      return listOp(
-        optionListToList([floorRequestMatch, liftRequestMatch]),
-        Math.min);
-      return new None();
+
+      const liftRequestGoingDownMatch = getMatchInListsFromBoundary(
+        state.lift.availableFloors,
+        state.liftRequests.filter(r => r.direction === Direction.Down).map(r => r.onFloor),
+        state.lift.floor,
+        (a,b) => (a > b),
+        (a,b) => (a - b)
+      );
+
+      return getFirstSome([
+        listOp(optionListToList([floorRequestMatch, liftRequestMatch]),Math.min),
+        liftRequestGoingDownMatch
+      ]);
     }
     case Direction.Down: {
       return new None();
@@ -77,6 +86,12 @@ const listOp = (ns: number[], f: (a: number, b: number) => number): Option<numbe
     return accOption.map(acc => f(acc, next));
   }, new None())
 }
+
+const getSome = <T>(opt1: Option<T>, opt2: Option<T>): Option<T> => {
+  return !(opt1.isEmpty())? opt1: opt2;
+}
+
+const getFirstSome = <T>(l: Option<T>[]): Option<T> => l.reduce(getSome, new None);
 
 export {SystemState, getLiftMoveStrategy,getMatchInListsFromBoundary, listOp};
 
