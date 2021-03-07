@@ -119,10 +119,15 @@ test('getLiftMoveStrategy, request down', () => {
         onFloor: 4,
           direction: Direction.Down,
           timeEpoch: 10
+      },
+      {
+        onFloor: 5,
+          direction: Direction.Down,
+          timeEpoch: 10
       }
     ]
   };
-  expect(getLiftMoveStrategy(state)).toEqual(Some.of(4));
+  expect(getLiftMoveStrategy(state)).toEqual(Some.of(5));
 })
 
 test('listMin', () => {

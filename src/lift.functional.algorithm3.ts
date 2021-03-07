@@ -23,13 +23,17 @@ const getMatchInListsFromBoundary =
     return Option.of<number>(result);
   }
 
+const above = (a: number,b: number) => (a > b)
+const below = (a: number,b: number) => (a < b)
+const minimum = (a: number, b: number) => (a - b)
+const maximum = (a: number, b: number) => (b - a)
 
 const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
   switch (state.direction) {
     case Direction.Up: {
   // if lift direction up, get first Some from:
-  //  * min (firstLiftRequest(up, >), firstFloorRequest(>))
-  //  * firstLiftRequest(down, >)
+  //  * min (firstLiftRequest(up, >), firstFloorRequest(>)) -- done
+  //  * firstLiftRequest(down, >)                           -- done
   //  * max (firstLiftRequest(down, <), firstFloorRequest(<))
   //  * firstLiftRequest(up, <)
       
@@ -37,8 +41,8 @@ const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
         state.lift.availableFloors,
         state.lift.floorRequests.map(r => r.floor),
         state.lift.floor,
-        (a,b) => (a > b),
-        (a,b) => (a - b)
+        above,
+        minimum
       );
 
       //
@@ -46,21 +50,21 @@ const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
         state.lift.availableFloors,
         state.liftRequests.filter(r => r.direction === Direction.Up).map(r => r.onFloor),
         state.lift.floor,
-        (a,b) => (a > b),
-        (a,b) => (a - b)
+        above, 
+        minimum
       );
 
-      const liftRequestGoingDownMatch = getMatchInListsFromBoundary(
+      const liftRequestGoingDownMatchMax = getMatchInListsFromBoundary(
         state.lift.availableFloors,
         state.liftRequests.filter(r => r.direction === Direction.Down).map(r => r.onFloor),
         state.lift.floor,
-        (a,b) => (a > b),
-        (a,b) => (a - b)
+        above,
+        maximum
       );
 
       return getFirstSome([
         listOp(optionListToList([floorRequestMatch, liftRequestMatch]),Math.min),
-        liftRequestGoingDownMatch
+        liftRequestGoingDownMatchMax
       ]);
     }
     case Direction.Down: {
