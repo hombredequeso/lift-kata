@@ -9,6 +9,11 @@ interface SystemState {
   liftRequests: LiftRequests,
 }
 
+const above = (a: number,b: number) => (a > b)
+const below = (a: number,b: number) => (a < b)
+const minimum = (a: number, b: number) => (a - b)
+const maximum = (a: number, b: number) => (b - a)
+
 const getMatchInListsFromBoundary =
   (l1: number[],
   l2: number[],
@@ -23,21 +28,9 @@ const getMatchInListsFromBoundary =
     return Option.of<number>(result);
   }
 
-const above = (a: number,b: number) => (a > b)
-const below = (a: number,b: number) => (a < b)
-const minimum = (a: number, b: number) => (a - b)
-const maximum = (a: number, b: number) => (b - a)
-
 const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
-  switch (state.direction) {
-    case Direction.Up: {
-  // if lift direction up, get first Some from:
-  //  * min (firstLiftRequest(up, >), firstFloorRequest(>)) -- done
-  //  * firstLiftRequest(down, >)                           -- done
-  //  * max (firstLiftRequest(down, <), firstFloorRequest(<))
-  //  * firstLiftRequest(up, <)
-      
-      const floorRequestMatch = getMatchInListsFromBoundary(
+
+      const floorRequestAbove = getMatchInListsFromBoundary(
         state.lift.availableFloors,
         state.lift.floorRequests.map(r => r.floor),
         state.lift.floor,
@@ -45,8 +38,7 @@ const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
         minimum
       );
 
-      //
-      const liftRequestMatch = getMatchInListsFromBoundary(
+      const liftRequestUpAbove = getMatchInListsFromBoundary(
         state.lift.availableFloors,
         state.liftRequests.filter(r => r.direction === Direction.Up).map(r => r.onFloor),
         state.lift.floor,
@@ -54,7 +46,7 @@ const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
         minimum
       );
 
-      const liftRequestGoingDownMatchMax = getMatchInListsFromBoundary(
+      const liftRequestDownAbove = getMatchInListsFromBoundary(
         state.lift.availableFloors,
         state.liftRequests.filter(r => r.direction === Direction.Down).map(r => r.onFloor),
         state.lift.floor,
@@ -62,33 +54,66 @@ const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
         maximum
       );
 
+      const liftRequestDownBelow = getMatchInListsFromBoundary(
+        state.lift.availableFloors,
+        state.liftRequests.filter(r => r.direction === Direction.Down).map(r => r.onFloor),
+        state.lift.floor,
+        below,
+        maximum
+      );
+
+      const floorRequestBelow= getMatchInListsFromBoundary(
+        state.lift.availableFloors,
+        state.lift.floorRequests.map(r => r.floor),
+        state.lift.floor,
+        below,
+        maximum
+      );
+
+      const liftRequestUpBelow = getMatchInListsFromBoundary(
+        state.lift.availableFloors,
+        state.liftRequests.filter(r => r.direction === Direction.Up).map(r => r.onFloor),
+        state.lift.floor,
+        below,
+        minimum
+      );
+
+  switch (state.direction) {
+    case Direction.Up: {
       return getFirstSome([
-        listOp(optionListToList([floorRequestMatch, liftRequestMatch]),Math.min),
-        liftRequestGoingDownMatchMax
+        listOp(optionListToList([floorRequestAbove, liftRequestUpAbove]),Math.min),
+        liftRequestDownAbove,
+        listOp(optionListToList([liftRequestDownBelow, floorRequestBelow]),Math.max),
+        liftRequestUpBelow
       ]);
     }
     case Direction.Down: {
-      return new None();
+      return getFirstSome([
+        listOp(optionListToList([floorRequestBelow, liftRequestDownBelow]),Math.min),
+        liftRequestUpBelow,
+        listOp(optionListToList([liftRequestUpAbove, floorRequestAbove]),Math.max),
+        liftRequestDownAbove
+      ]);
     }
     default:
       return new None();
   }
 }
 
+const prependIfSome = <T>(acc: T[], next: Option<T>) => next.map(n => [n, ...acc]).getOrElse(acc);
+
 const optionListToList = <T>(tOptions: Option<T>[]): T[] => {
-  return tOptions.reduce((acc: T[], next: Option<T>) => {
-    return next.map(n => [n, ...acc]).getOrElse(acc);
-  },
-  []);
+  return tOptions.reduce((acc: T[], next: Option<T>) => prependIfSome(acc, next), []);
 }
 
+
 const listOp = (ns: number[], f: (a: number, b: number) => number): Option<number> => {
-  return ns.reduce((accOption: Option<number>, next: number) => {
-    if (accOption.isEmpty()) {
-      return Some.of(next);
-    }
-    return accOption.map(acc => f(acc, next));
-  }, new None())
+  if (ns.length === 0) {
+    return new None();
+  }
+  const [head, ...tail] = ns;
+  const result = tail.reduce((acc,next) => f(acc, next), head);
+  return Some.of(result);
 }
 
 const getSome = <T>(opt1: Option<T>, opt2: Option<T>): Option<T> => {
