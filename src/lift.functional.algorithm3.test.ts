@@ -193,6 +193,42 @@ test('getLiftMoveStrategy, lift request up below', () => {
   expect(getLiftMoveStrategy(state)).toEqual(Some.of(2));
 })
 
+test('getLiftMoveStrategy, mixed #1', () => {
+  const state = {
+    lift: {
+      floor: 5,
+        availableFloors: [1,2,3,4,5,11,12,13,14,15],
+        // floor 6: not available
+        floorRequests: [{floor: 6},{floor: 12}]
+    },
+    direction: Direction.Up,
+    liftRequests: [
+      {
+        onFloor: 7, // floor not available
+          direction: Direction.Down,
+          timeEpoch: 10
+      },
+      {
+        onFloor: 8, // floor not available
+          direction: Direction.Up,
+          timeEpoch: 10
+      },
+      {
+        onFloor: 11,  // Not going in right direction
+          direction: Direction.Down,
+          timeEpoch: 10
+      },
+      {
+        onFloor: 13,
+          direction: Direction.Up,
+          timeEpoch: 10
+      }
+    ]
+  };
+  expect(getLiftMoveStrategy(state)).toEqual(Some.of(12));
+
+})
+
 test('listMin', () => {
   expect(listOp([], Math.min)).toEqual(new None());
   expect(listOp([1], Math.min)).toEqual(Some.of(1));
