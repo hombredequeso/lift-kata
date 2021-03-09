@@ -1,10 +1,13 @@
 import { Option, None} from 'tsoption'
-import {Direction,
-  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent,
+import {
   LiftRequests, Lift,
   processFloorRequestEventForLift, processLiftArrivedEventForLift, processLiftArrivedEventForLiftRequests,
   processLiftRequestEvent, SystemState, getLiftMoveStrategy1, 
   applyLiftArrivedEvent, applyFloorRequestEvent, applyLiftRequestEvent} from './lift.functional'
+import {
+  Direction, Floor, 
+  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent
+} from './events'
 
 test('applyLiftRequestEvent updates SystemState correctly', () => {
   const initialState: SystemState = {

@@ -1,7 +1,10 @@
 import { Option, None, Some} from 'tsoption'
-import {Direction, 
-  LiftRequests, Lift, Floor, FloorRequestButtonPressedEvent
+import { 
+  LiftRequests, Lift
 } from './lift.functional'
+import {
+  Direction, Floor, FloorRequestButtonPressedEvent
+} from './events'
 
 import {
   SystemState, getSome, getFirstSome, 

@@ -1,25 +1,10 @@
 import { Option, None} from 'tsoption'
-
-enum Direction {Up,  Down}
-
-type Floor = number;
-type EpochTime = number;
+import {
+  Direction, Floor, EpochTime, 
+  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent
+} from './events'
 
 const listAppend = <T>(ts: T[], t: T): T[] => [...ts, t];
-
-interface LiftRequestButtonPressedEvent {
-  onFloor: Floor,
-  direction: Direction,
-  timeEpoch: EpochTime
-}
-
-interface FloorRequestButtonPressedEvent {
-  floor: Floor;
-}
-
-interface LiftArrivedEvent {
-  floor: Floor
-}
 
 type LiftRequests = LiftRequestButtonPressedEvent[];
 
@@ -109,8 +94,7 @@ const applyLiftRequestEvent =
     liftRequests: processLiftRequestEvent(state.liftRequests, event)
   });
 
-export {Direction, Floor, EpochTime, 
-  LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent, 
+export {
   listAppend, LiftRequests, Lift, 
   processFloorRequestEventForLift, processLiftArrivedEventForLift, 
   processLiftArrivedEventForLiftRequests, processLiftRequestEvent, 

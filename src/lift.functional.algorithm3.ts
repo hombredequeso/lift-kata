@@ -1,6 +1,9 @@
 import { Option, None, Some } from 'tsoption'
-import { Direction, Floor, /*EpochTime,*/ 
+import {
   LiftRequests, Lift } from './lift.functional'
+import {
+  Direction, Floor
+} from './events'
 
 
 interface SystemState {
