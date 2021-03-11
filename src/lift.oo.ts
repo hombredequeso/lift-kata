@@ -59,9 +59,6 @@ class LiftRequests {
   private _requests: LiftRequestButtonPressedEvent[]
 }
 
-// Event processing
-//
-
 interface SystemState {
   _lift: Lift;
   _liftRequests: LiftRequests;
