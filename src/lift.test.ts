@@ -9,6 +9,7 @@ import {
   LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent
 } from './events'
 
+
 test('applyLiftRequestEvent updates SystemState correctly', () => {
   const initialState: SystemState = {
     lift: {
@@ -36,6 +37,14 @@ test('applyLiftRequestEvent updates SystemState correctly', () => {
       }
   );
 });
+
+test('sets', () => {
+  const s = new Set([1,2,3]);
+  expect(s.size).toEqual(3);
+
+  
+
+})
 
 test('applyFloorRequestEvent updates SystemState correctly', () => {
   const initialState: SystemState = {

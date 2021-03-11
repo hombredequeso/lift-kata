@@ -54,20 +54,6 @@ interface SystemState {
   liftRequests: LiftRequests
 }
 
-const getLiftMoveStrategy1 = 
-  (state: SystemState)
-  : Floor => {
-  const orderedRequests = 
-    state
-    .liftRequests
-    .filter(r => r.onFloor !== state.lift.floor)
-    .filter(r => state.lift.availableFloors.includes(r.onFloor))
-    .sort(r => r.timeEpoch);
-  return (orderedRequests.length > 0)?  
-    orderedRequests[0].onFloor :
-    state.lift.floor;
-}
-
 const applyLiftArrivedEvent = 
   (state: SystemState, 
   moveEvent: LiftArrivedEvent)
@@ -93,6 +79,20 @@ const applyLiftRequestEvent =
     lift: state.lift,
     liftRequests: processLiftRequestEvent(state.liftRequests, event)
   });
+
+const getLiftMoveStrategy1 = 
+  (state: SystemState)
+  : Floor => {
+  const orderedRequests = 
+    state
+    .liftRequests
+    .filter(r => r.onFloor !== state.lift.floor)
+    .filter(r => state.lift.availableFloors.includes(r.onFloor))
+    .sort(r => r.timeEpoch);
+  return (orderedRequests.length > 0)?  
+    orderedRequests[0].onFloor :
+    state.lift.floor;
+}
 
 export {
   listAppend, LiftRequests, Lift, 

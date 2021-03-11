@@ -1,7 +1,10 @@
 import {start as promptStart, get as promptGet, Schema} from 'prompt';
-import {SystemState, FloorRequestButtonPressedEvent, LiftRequestButtonPressedEvent, LiftArrivedEvent,
-  applyFloorRequestEvent, applyLiftRequestEvent, applyLiftArrivedEvent, Direction} 
+import {SystemState, 
+  applyFloorRequestEvent, applyLiftRequestEvent, applyLiftArrivedEvent} 
   from './lift.functional';
+import {FloorRequestButtonPressedEvent, LiftRequestButtonPressedEvent, LiftArrivedEvent,
+  Direction} 
+  from './events';
 
 console.log("hello world");
 

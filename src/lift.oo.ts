@@ -1,5 +1,5 @@
 import {
-  Direction, Floor
+  Direction, Floor,
   LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent
 } from './events'
 
@@ -14,7 +14,7 @@ class Lift {
     if (this._availableFloors.includes(floor)) {
       this._floor = floor;
       this._floorRequests = 
-        this._floorRequests.filter(r => r.onFloor !== floor);
+        this._floorRequests.filter(r => r.floor !== floor);
     }
   }
 
@@ -34,9 +34,9 @@ class Lift {
     this._floorRequests.push(floorRequest);
   }
 
-  private _floor: Floor,
-  private _availableFloors: Floor[],
-  private _floorRequests: FloorRequestButtonPressedEvent[]
+  private _floor: Floor;
+  private _availableFloors: Floor[];
+  private _floorRequests: FloorRequestButtonPressedEvent[];
 }
 
 class LiftRequests {
@@ -52,48 +52,52 @@ class LiftRequests {
     this._requests.push(request);
   }
 
+  cancel(floor: Floor) {
+    this._requests = this.requests.filter(r => r.onFloor != floor);
+  }
+
   private _requests: LiftRequestButtonPressedEvent[]
 }
 
 // Event processing
 //
 
-class SystemState {
-  public _lift: Lift;
-  public _liftRequests: LiftRequests;
+interface SystemState {
+  _lift: Lift;
+  _liftRequests: LiftRequests;
 }
 
 class LiftRequestButtonPressedEventHander {
-  public LiftRequestButtonPressedEventHander(state: SystemState) {
+  constructor(state: SystemState) {
     this._state = state;
   }
   private _state: SystemState;
 
   handle(event: LiftRequestButtonPressedEvent) {
-    this.state._liftRequests.add(event);
+    this._state._liftRequests.addRequest(event);
   }
 }
 
 class FloorRequestButtonPressedEventHandler {
-  public FloorRequestButtonPressedEventHandler(state: SystemState) {
+  constructor(state: SystemState) {
     this._state = state;
   }
   private _state: SystemState;
 
   handle(event: FloorRequestButtonPressedEvent) {
-    this.state._lift.addRequest(event);
+    this._state._lift.addRequest(event);
   }
 }
 
 class LiftArrivedEventHandler {
-  public LiftArrivedEventHandler(state: SystemState) {
+  constructor(state: SystemState) {
     this._state = state;
   }
   private _state: SystemState;
 
   handle(event: LiftArrivedEvent) {
-    this.state._lift.moveTo(event.floor);
-    this.state._liftRequests.cancel(event.floor);
+    this._state._lift.moveTo(event.floor);
+    this._state._liftRequests.cancel(event.floor);
   }
 }
 

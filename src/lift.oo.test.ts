@@ -1,10 +1,9 @@
-
 import {
   Lift, LiftRequests
 } from './lift.oo'
 
 import {
-  Direction, Floor
+  Direction, Floor,
   LiftRequestButtonPressedEvent, FloorRequestButtonPressedEvent, LiftArrivedEvent
 } from './events'
 
@@ -17,7 +16,7 @@ test('LiftRequests constructor correctly creates object', () => {
 test('addRequest adds a request', () => {
   const liftRequests = new LiftRequests();
   const request = {
-    onFloor: 1
+    onFloor: 1,
     direction: Direction.Up,
     timeEpoch: 10
   };
@@ -44,15 +43,11 @@ test('moveTo available floor updates floor and clears floorRequests for the floo
   const lift = new Lift(floor, availableFloors);
   lift.addRequest(
     {
-      onFloor: 2
-      direction: Direction.Up,
-      timeEpoch: 10
+      floor: 2
     });
   lift.addRequest(
     {
-      onFloor: 3
-      direction: Direction.Up,
-      timeEpoch: 10
+      floor: 3
     });
 
   lift.moveTo(3);
@@ -60,9 +55,7 @@ test('moveTo available floor updates floor and clears floorRequests for the floo
   expect(lift.floor).toEqual(3);
   expect(lift.floorRequests).toEqual([
     {
-      onFloor: 2
-      direction: Direction.Up,
-      timeEpoch: 10
+      floor: 2
     }
   ])
 })
@@ -73,15 +66,11 @@ test('moveTo unavailable floor does nothing', () => {
   const lift = new Lift(floor, availableFloors);
   lift.addRequest(
     {
-      onFloor: 2
-      direction: Direction.Up,
-      timeEpoch: 10
+      floor: 2
     });
   lift.addRequest(
     {
-      onFloor: 3
-      direction: Direction.Up,
-      timeEpoch: 10
+      floor: 3
     });
 
   lift.moveTo(7);
@@ -89,15 +78,10 @@ test('moveTo unavailable floor does nothing', () => {
   expect(lift.floor).toEqual(floor);
   expect(lift.floorRequests).toEqual([
     {
-      onFloor: 2
-      direction: Direction.Up,
-      timeEpoch: 10
+      floor: 2
     },
     {
-      onFloor: 3
-      direction: Direction.Up,
-      timeEpoch: 10
+      floor: 3
     }
   ])
-}
 });
