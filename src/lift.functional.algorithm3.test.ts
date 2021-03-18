@@ -7,7 +7,7 @@ import {
 } from './events'
 
 import {
-  SystemState, getLiftMoveStrategy,getMatchInListsFromBoundary, listOp
+  SystemState, getLiftMoveStrategy,getMatchInListsFromBoundary
 } from './lift.functional.algorithm3';
 
 test('getMatchInListsFromBoundary', () => {
@@ -232,10 +232,3 @@ test('getLiftMoveStrategy, mixed #1', () => {
 
 })
 
-test('listMin', () => {
-  expect(listOp([], Math.min)).toEqual(new None());
-  expect(listOp([1], Math.min)).toEqual(Some.of(1));
-  expect(listOp([1,2], Math.min)).toEqual(Some.of(1));
-  expect(listOp([2,1], Math.min)).toEqual(Some.of(1));
-  expect(listOp([3,7,2,9,6,1,5,8, 9], Math.min)).toEqual(Some.of(1));
-})

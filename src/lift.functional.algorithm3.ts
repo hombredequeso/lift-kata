@@ -4,7 +4,7 @@ import {
 import {
   Direction, Floor
 } from './events'
-
+import {SemiGroup, MinSemiGroup, MaxSemiGroup, OptionMonoid, FirstSemiGroup} from './monoid';
 
 interface SystemState {
   lift: Lift,
@@ -81,20 +81,22 @@ const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
         minimum
       );
 
+  const minOptionMonoid = new OptionMonoid(new MinSemiGroup());
+  const maxOptionMonoid = new OptionMonoid(new MaxSemiGroup());
   switch (state.direction) {
     case Direction.Up: {
       return getFirstSome([
-        listOp(optionListToList([floorRequestAbove, liftRequestUpAbove]),Math.min),
+        minOptionMonoid.combine(floorRequestAbove, liftRequestUpAbove),
         liftRequestDownAbove,
-        listOp(optionListToList([liftRequestDownBelow, floorRequestBelow]),Math.max),
+        maxOptionMonoid.combine(liftRequestDownBelow, floorRequestBelow),
         liftRequestUpBelow
       ]);
     }
     case Direction.Down: {
       return getFirstSome([
-        listOp(optionListToList([floorRequestBelow, liftRequestDownBelow]),Math.min),
+        minOptionMonoid.combine(floorRequestBelow, liftRequestDownBelow),
         liftRequestUpBelow,
-        listOp(optionListToList([liftRequestUpAbove, floorRequestAbove]),Math.max),
+        maxOptionMonoid.combine(liftRequestUpAbove, floorRequestAbove),
         liftRequestDownAbove
       ]);
     }
@@ -103,27 +105,12 @@ const getLiftMoveStrategy = (state: SystemState): Option<Floor> => {
   }
 }
 
-const prependIfSome = <T>(acc: T[], next: Option<T>) => next.map(n => [n, ...acc]).getOrElse(acc);
-
-const optionListToList = <T>(tOptions: Option<T>[]): T[] => {
-  return tOptions.reduce((acc: T[], next: Option<T>) => prependIfSome(acc, next), []);
+const getFirstSome = <T>(l: Option<T>[]): Option<T> =>  {
+  const optionFirstMonoid = new OptionMonoid(new FirstSemiGroup<T>());
+  return l.reduce(
+    (x,y) => optionFirstMonoid.combine(x,y), 
+    optionFirstMonoid.empty());
 }
 
-
-const listOp = (ns: number[], f: (a: number, b: number) => number): Option<number> => {
-  if (ns.length === 0) {
-    return new None();
-  }
-  const [head, ...tail] = ns;
-  const result = tail.reduce((acc,next) => f(acc, next), head);
-  return Some.of(result);
-}
-
-const getSome = <T>(opt1: Option<T>, opt2: Option<T>): Option<T> => {
-  return !(opt1.isEmpty())? opt1: opt2;
-}
-
-const getFirstSome = <T>(l: Option<T>[]): Option<T> => l.reduce(getSome, new None);
-
-export {SystemState, getLiftMoveStrategy,getMatchInListsFromBoundary, listOp};
+export {SystemState, getLiftMoveStrategy,getMatchInListsFromBoundary};
 
